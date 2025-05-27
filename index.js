@@ -39,6 +39,7 @@ app.post('/ussd', (req, res) => {
 
     const numRegex = /^\d+$/;
     
+    
     if (text === '') {
         response = `CON  'Welcome to Emergent Payments Visitor Portal\nEnter your fullname:`;
         log(`Session started: ${sessionId}`);
@@ -185,8 +186,26 @@ else if (input.length === 3) {
                         return res.send('END Error');
                     } else {
                         log(`Code saved for ${sessionId}: ${result}`);
-                        response = 'CON Check-in successful. Your code is EPX4812';
+                        response = `CON Check-in successful. Your code is ${result}`;
                     }
+                res.set('Content-Type', 'text/plain');
+                res.send(response);
+            }
+        );
+
+    }
+    else {
+        db.query(
+            'DELETE FROM visitor_log WHERE session_id = ?',
+            [sessionId],
+            (error) => {
+                if (error) {
+                    log(`Error deleting record for ${sessionId}: ${error.message}`);
+                    return res.send('END Error');
+                } else {
+                    log(`Record deleted for ${sessionId}`);
+                    response = 'END Check-in cancelled';
+                }
                 res.set('Content-Type', 'text/plain');
                 res.send(response);
             }
